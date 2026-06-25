@@ -1,3 +1,4 @@
+using System.Collections; // <-- ต้องมีอันนี้ เพื่อใช้ระบบหน่วงเวลา
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,12 +11,16 @@ public class PlayerCombat : MonoBehaviour
     private PlayerMovement playerMovement;
 
     [Header("ระบบเสียง (Audio)")]
-    public AudioSource attackSound; // <-- เพิ่มตัวแปรสำหรับเสียงฟันดาบ
+    public AudioSource attackSound;
 
     [Header("ตั้งค่าการต่อสู้ (Combat Settings)")]
     public float attackRange = 0.5f;
     public int attackDamage = 40;
     public float attackRate = 2f;
+
+    [Header("ความหน่วงของดาเมจ (วินาที)")]
+    public float damageDelay = 0.2f; // <-- เพิ่มตัวแปรนี้เข้ามา ปรับค่าใน Unity ได้
+
     private float nextAttackTime = 0f;
 
     void Start()
@@ -46,18 +51,33 @@ public class PlayerCombat : MonoBehaviour
             attackSound.Play();
         }
 
-        // 2. เล่นแอนิเมชัน
+        // 2. เล่นแอนิเมชันง้างดาบ
         if (animator != null)
         {
             animator.SetTrigger("Attack");
         }
 
-        // 3. ทำดาเมจศัตรู
+        // 3. สั่งให้เริ่มการหน่วงเวลา ก่อนจะทำดาเมจ
+        StartCoroutine(DealDamageAfterDelay());
+    }
+
+    // ฟังก์ชันพิเศษสำหรับหน่วงเวลา (Coroutine)
+    IEnumerator DealDamageAfterDelay()
+    {
+        // รอเวลาตามที่เราตั้งค่าไว้ใน Inspector (เช่น 0.2 วินาที)
+        yield return new WaitForSeconds(damageDelay);
+
+        // หลังจากรอเสร็จแล้ว ค่อยสร้างวงกลมเช็คการโดนตัวศัตรู
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
         foreach (Collider2D enemy in hitEnemies)
         {
-            enemy.GetComponent<Enemy>().TakeDamage(attackDamage);
+            // ถ้าศัตรูมีสคริปต์ Enemy อยู่ ให้สั่งลดเลือด
+            Enemy enemyScript = enemy.GetComponent<Enemy>();
+            if (enemyScript != null)
+            {
+                enemyScript.TakeDamage(attackDamage);
+            }
         }
     }
 
