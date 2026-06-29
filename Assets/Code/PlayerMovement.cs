@@ -21,7 +21,13 @@ public class PlayerMovement : MonoBehaviour
     private bool isDashing;
 
     [Header("เอฟเฟกต์ (Effects)")]
-    public TrailRenderer trailRenderer; // <-- เพิ่มตัวแปรสำหรับลากเส้นเอฟเฟกต์ตามหลัง
+    public TrailRenderer trailRenderer;
+
+    [Header("ระบบเสียง (Audio)")]
+    public AudioSource footstepAudioSource;
+    public AudioSource sfxAudioSource;
+    public AudioClip jumpSound;
+    public AudioClip dashSound;             // <-- 1. เพิ่มช่องใส่ไฟล์เสียง Dash ตรงนี้
 
     [Header("ส่วนประกอบ (References)")]
     public Rigidbody2D rb;
@@ -49,16 +55,39 @@ public class PlayerMovement : MonoBehaviour
                     moveInput = -1f;
 
                 if (Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
+                {
                     rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+
+                    if (sfxAudioSource != null && jumpSound != null)
+                    {
+                        sfxAudioSource.PlayOneShot(jumpSound);
+                    }
+                }
 
                 if (Keyboard.current.leftShiftKey.wasPressedThisFrame && canDash)
                     StartCoroutine(DashCoroutine());
+            }
+
+            if (moveInput != 0 && isGrounded)
+            {
+                if (footstepAudioSource != null && !footstepAudioSource.isPlaying)
+                {
+                    footstepAudioSource.Play();
+                }
+            }
+            else
+            {
+                if (footstepAudioSource != null) footstepAudioSource.Stop();
             }
 
             if (moveInput > 0 && !isFacingRight)
                 Flip();
             else if (moveInput < 0 && isFacingRight)
                 Flip();
+        }
+        else
+        {
+            if (footstepAudioSource != null) footstepAudioSource.Stop();
         }
 
         if (animator != null)
@@ -84,11 +113,14 @@ public class PlayerMovement : MonoBehaviour
         canDash = false;
         isDashing = true;
 
-        // --- 1. เปิดเอฟเฟกต์ Trail ตอนเริ่มพุ่ง ---
-        if (trailRenderer != null)
+        // --- 2. สั่งเล่นเสียง Dash ทันทีที่เริ่มพุ่งตัว ---
+        if (sfxAudioSource != null && dashSound != null)
         {
-            trailRenderer.emitting = true;
+            sfxAudioSource.PlayOneShot(dashSound);
         }
+        // ------------------------------------------
+
+        if (trailRenderer != null) trailRenderer.emitting = true;
 
         int playerLayer = gameObject.layer;
         int enemyLayer = LayerMask.NameToLayer("Enemy");
@@ -96,24 +128,17 @@ public class PlayerMovement : MonoBehaviour
 
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
-
         rb.constraints = RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
 
         float dashDirection = isFacingRight ? 1f : -1f;
         rb.velocity = new Vector2(dashDirection * dashPower, 0f);
 
-        // รอจนกว่าจะพุ่งเสร็จ (0.2 วินาที)
         yield return new WaitForSeconds(dashTime);
 
-        // --- 2. ปิดเอฟเฟกต์ Trail เมื่อพุ่งเสร็จสิ้น ---
-        if (trailRenderer != null)
-        {
-            trailRenderer.emitting = false;
-        }
+        if (trailRenderer != null) trailRenderer.emitting = false;
 
         rb.gravityScale = originalGravity;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-
         Physics2D.IgnoreLayerCollision(playerLayer, enemyLayer, false);
 
         isDashing = false;
