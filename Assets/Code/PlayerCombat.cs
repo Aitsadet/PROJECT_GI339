@@ -1,6 +1,7 @@
-using System.Collections; // <-- ต้องมีอันนี้ เพื่อใช้ระบบหน่วงเวลา
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems; // <-- 1. ต้องเพิ่มบรรทัดนี้ เพื่อใช้ระบบจัดการ UI
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class PlayerCombat : MonoBehaviour
     public float attackRate = 2f;
 
     [Header("ความหน่วงของดาเมจ (วินาที)")]
-    public float damageDelay = 0.2f; // <-- เพิ่มตัวแปรนี้เข้ามา ปรับค่าใน Unity ได้
+    public float damageDelay = 0.2f;
 
     private float nextAttackTime = 0f;
 
@@ -32,8 +33,17 @@ public class PlayerCombat : MonoBehaviour
     {
         if (Time.time >= nextAttackTime)
         {
+            // รับคำสั่งคลิกซ้าย
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
+                // --- จุดที่แก้ไข (ป้องกันคลิกทะลุ UI) ---
+                // ถ้าในฉากมี EventSystem และเมาส์กำลังชี้อยู่บน UI (เช่น ปุ่ม Play)
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                {
+                    return; // สั่ง return เพื่อให้ออกจากฟังก์ชันนี้ไปเลย (ไม่ทำคำสั่งฟันดาบด้านล่างต่อ)
+                }
+                // ------------------------------------
+
                 if (playerMovement != null && playerMovement.isGrounded == true)
                 {
                     Attack();
@@ -45,34 +55,28 @@ public class PlayerCombat : MonoBehaviour
 
     void Attack()
     {
-        // 1. สั่งเล่นเสียงฟันดาบ
         if (attackSound != null)
         {
             attackSound.Play();
         }
 
-        // 2. เล่นแอนิเมชันง้างดาบ
         if (animator != null)
         {
             animator.SetTrigger("Attack");
         }
 
-        // 3. สั่งให้เริ่มการหน่วงเวลา ก่อนจะทำดาเมจ
         StartCoroutine(DealDamageAfterDelay());
     }
 
-    // ฟังก์ชันพิเศษสำหรับหน่วงเวลา (Coroutine)
     IEnumerator DealDamageAfterDelay()
     {
-        // รอเวลาตามที่เราตั้งค่าไว้ใน Inspector (เช่น 0.2 วินาที)
         yield return new WaitForSeconds(damageDelay);
 
-        // หลังจากรอเสร็จแล้ว ค่อยสร้างวงกลมเช็คการโดนตัวศัตรู
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
         foreach (Collider2D enemy in hitEnemies)
         {
-            // ถ้าศัตรูมีสคริปต์ Enemy อยู่ ให้สั่งลดเลือด
+            // ถ้าศัตรูมีสคริปต์ Enemy อยู่ ให้สั่งลดเลือด (ตรวจสอบชื่อคลาส Enemy ของคุณด้วยนะ)
             Enemy enemyScript = enemy.GetComponent<Enemy>();
             if (enemyScript != null)
             {
