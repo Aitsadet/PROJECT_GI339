@@ -1,25 +1,25 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.EventSystems; // <-- 1. ต้องเพิ่มบรรทัดนี้ เพื่อใช้ระบบจัดการ UI
+using UnityEngine.EventSystems;
 
 public class PlayerCombat : MonoBehaviour
 {
-    [Header("ส่วนประกอบ (References)")]
+    [Header("References")]
     public Animator animator;
     public Transform attackPoint;
     public LayerMask enemyLayers;
     private PlayerMovement playerMovement;
 
-    [Header("ระบบเสียง (Audio)")]
+    [Header("Audio")]
     public AudioSource attackSound;
 
-    [Header("ตั้งค่าการต่อสู้ (Combat Settings)")]
+    [Header("Combat Settings")]
     public float attackRange = 0.5f;
     public int attackDamage = 40;
     public float attackRate = 2f;
 
-    [Header("ความหน่วงของดาเมจ (วินาที)")]
+    [Header("Damage Delay (Seconds)")]
     public float damageDelay = 0.2f;
 
     private float nextAttackTime = 0f;
@@ -33,16 +33,13 @@ public class PlayerCombat : MonoBehaviour
     {
         if (Time.time >= nextAttackTime)
         {
-            // รับคำสั่งคลิกซ้าย
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
-                // --- จุดที่แก้ไข (ป้องกันคลิกทะลุ UI) ---
-                // ถ้าในฉากมี EventSystem และเมาส์กำลังชี้อยู่บน UI (เช่น ปุ่ม Play)
+                // Prevent UI click-through
                 if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
                 {
-                    return; // สั่ง return เพื่อให้ออกจากฟังก์ชันนี้ไปเลย (ไม่ทำคำสั่งฟันดาบด้านล่างต่อ)
+                    return;
                 }
-                // ------------------------------------
 
                 if (playerMovement != null && playerMovement.isGrounded == true)
                 {
@@ -76,11 +73,20 @@ public class PlayerCombat : MonoBehaviour
 
         foreach (Collider2D enemy in hitEnemies)
         {
-            // ถ้าศัตรูมีสคริปต์ Enemy อยู่ ให้สั่งลดเลือด (ตรวจสอบชื่อคลาส Enemy ของคุณด้วยนะ)
-            Enemy enemyScript = enemy.GetComponent<Enemy>();
-            if (enemyScript != null)
+            // 1. Try to deal damage to the NEW EnemyHealth script (Goblin)
+            EnemyHealth newEnemyScript = enemy.GetComponent<EnemyHealth>();
+            if (newEnemyScript != null)
             {
-                enemyScript.TakeDamage(attackDamage);
+                newEnemyScript.TakeDamage(attackDamage);
+            }
+            else
+            {
+                // 2. Fallback: Try to deal damage to the OLD Enemy script (if any)
+                Enemy oldEnemyScript = enemy.GetComponent<Enemy>();
+                if (oldEnemyScript != null)
+                {
+                    oldEnemyScript.TakeDamage(attackDamage);
+                }
             }
         }
     }
