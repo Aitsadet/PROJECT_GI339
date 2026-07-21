@@ -4,19 +4,25 @@ using UnityEngine;
 public class EnemyHealth : MonoBehaviour
 {
     [Header("Health Settings")]
-    public int maxHealth = 3; // เลือดสูงสุดของศัตรู
+    public int maxHealth = 3;
     private int currentHealth;
 
     [Header("Animation Names")]
-    public string takeHitAnim = "TakeHit_1"; // ชื่อกล่องอนิเมชันตอนโดนตี
-    public string dieAnim = "Die_1";         // ชื่อกล่องอนิเมชันตอนตาย
+    public string takeHitAnim = "TakeHit_1";
+    public string dieAnim = "Die_1";
 
     [Header("Scripts to Disable")]
-    public MonoBehaviour patrolScript;       // สคริปต์เดิน (EnemyPatrol)
-    public MonoBehaviour attackScript;       // สคริปต์โจมตี (EnemyAttackWarning)
+    public MonoBehaviour patrolScript;
+    public MonoBehaviour attackScript;
+
+    [Header("Goal Door Reference")]
+    public GameObject goalDoor; // ลากประตูมาใส่ในช่องนี้ผ่าน Inspector
 
     private Animator animator;
     private bool isDead = false;
+
+    // 🌟 เพิ่มตัวแปรเช็คสถานะการโดนตี เพื่อป้องกันบั๊กโดนฟันรัวๆ แล้วทำงานซ้อนกัน
+    private Coroutine hitCoroutine;
 
     void Start()
     {
@@ -33,49 +39,77 @@ public class EnemyHealth : MonoBehaviour
         if (currentHealth <= 0)
         {
             Die();
+            return;
         }
-        else
+
+        // 🌟 ถ้ายืนชะงักอยู่แล้วโดนฟันซ้ำ ให้เคลียร์ของเก่าทิ้งแล้วนับเวลาชะงักใหม่
+        if (hitCoroutine != null)
         {
-            StartCoroutine(TakeHitRoutine());
+            StopCoroutine(hitCoroutine);
         }
+
+        // สั่งให้สคริปต์โจมตีรับรู้ว่าโดนชะงัก
+        EnemyAttackWarning warningScript = GetComponent<EnemyAttackWarning>();
+        if (warningScript != null)
+        {
+            warningScript.StunEnemy(0.4f);
+        }
+
+        hitCoroutine = StartCoroutine(TakeHitRoutine());
     }
 
     private IEnumerator TakeHitRoutine()
     {
-        // 1. หยุดเดินและหยุดชาร์จโจมตีชั่วคราว
+        // 1. หยุดสคริปต์ AI ทุกตัวทันที
         if (patrolScript != null) patrolScript.enabled = false;
         if (attackScript != null) attackScript.enabled = false;
 
-        // 2. เล่นท่าโดนฟัน
-        if (animator != null) animator.Play(takeHitAnim);
+        // 2. หยุดแรงเหวี่ยงฟิสิกส์ให้ตัวหยุดนิ่ง
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null) rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
 
-        // 3. รอให้ท่าโดนฟันเล่นจบ (ประมาณ 0.4 วินาที)
+        // 3. เล่นท่าโดนตี
+        if (animator != null)
+        {
+            animator.Play(takeHitAnim, 0, 0f);
+        }
+
+        // 4. รอจนกว่าจะเล่นท่าเสร็จ
         yield return new WaitForSeconds(0.4f);
 
-        // 4. ถ้ายังไม่ตาย ให้กลับมาเดินและโจมตีต่อได้
+        // 5. คืนชีพ AI
         if (!isDead)
         {
-            if (patrolScript != null) patrolScript.enabled = true;
+            // เปิดสคริปต์ไล่ล่าทำงานต่อ
             if (attackScript != null) attackScript.enabled = true;
+
+            // ❌ เอาโค้ดที่เปิด patrolScript ทิ้งไปเลย เพื่อป้องกันสคริปต์แย่งกันทำงาน! 
+            // ให้ attackScript เป็นคนตัดสินใจเองว่าจะเปิด Patrol ตอนที่ผู้เล่นเดินหนีไปแล้ว
+
+            // ยกเว้นกรณีไม่มี attackScript ให้เปิด patrol ปกติ
+            if (attackScript == null && patrolScript != null)
+            {
+                patrolScript.enabled = true;
+            }
         }
     }
 
     private void Die()
     {
         isDead = true;
-
-        // 1. ปิดสคริปต์ทุกอย่างไม่ให้ขยับหรือโจมตีได้อีก
         if (patrolScript != null) patrolScript.enabled = false;
         if (attackScript != null) attackScript.enabled = false;
-
-        // 2. เล่นท่าตาย
         if (animator != null) animator.Play(dieAnim);
 
-        // 3. ปิดกล่องชน (Collider) เพื่อให้ผู้เล่นเดินผ่านศพไปได้ ไม่ติดกำแพงล่องหน
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
-        // 4. ลบศพทิ้งหลังจากผ่านไป 3 วินาที (ถ้าอยากให้ศพอยู่ตลอดไป ให้ลบบรรทัดนี้ทิ้งครับ)
-        Destroy(gameObject, 3f);
+        // 🌟 สั่งให้ประตูโผล่ขึ้นมา (เปิดใช้งาน GameObject ของประตู) เมื่อบอสตาย
+        if (goalDoor != null)
+        {
+            goalDoor.SetActive(true);
+        }
+
+        Destroy(gameObject, 0.5f);
     }
 }

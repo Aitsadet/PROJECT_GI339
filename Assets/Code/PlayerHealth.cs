@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI; // 🌟 1. เพิ่มบรรทัดนี้เพื่อเรียกใช้ UI
 using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
@@ -7,18 +8,41 @@ public class PlayerHealth : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth;
 
+    [Header("UI Reference")]
+    public Slider hpSlider; // 🌟 2. ช่องสำหรับลาก Slider เลือดมาใส่
+
+    [Header("Animator Reference")]
+    public Animator animator;
+
     void Start()
     {
-        // เริ่มเกมมาให้เลือดเต็ม 100
         currentHealth = maxHealth;
+
+        // 🌟 3. เซ็ตค่าเริ่มต้นให้ Slider เลือดเต็ม
+        if (hpSlider != null)
+        {
+            hpSlider.maxValue = maxHealth;
+            hpSlider.value = currentHealth;
+        }
     }
 
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // ป้องกันเลือดติดลบเกินจริง
         Debug.Log("Player HP: " + currentHealth);
 
-        // ถ้าเลือดหมด (เหลือน้อยกว่าหรือเท่ากับ 0)
+        // 🌟 4. อัปเดตค่าหลอดเลือดบน UI ทันทีที่เลือดลด
+        if (hpSlider != null)
+        {
+            hpSlider.value = currentHealth;
+        }
+
+        if (animator != null && currentHealth > 0)
+        {
+            animator.SetTrigger("TakeHit");
+        }
+
         if (currentHealth <= 0)
         {
             Die();
@@ -28,7 +52,6 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         Debug.Log("Player Died!");
-        // รีสตาร์ทด่านใหม่เมื่อตาย (ถ้ามีท่าตาย ค่อยมาใส่เพิ่มทีหลังได้ครับ)
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

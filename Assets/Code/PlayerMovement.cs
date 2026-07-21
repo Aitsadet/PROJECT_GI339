@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -20,6 +21,10 @@ public class PlayerMovement : MonoBehaviour
     private bool canDash = true;
     private bool isDashing;
 
+    [Header("Dash UI Reference")]
+    public Slider dashCooldownSlider;
+    private float dashTimer = 0f;
+
     [Header("เอฟเฟกต์ (Effects)")]
     public TrailRenderer trailRenderer;
 
@@ -27,7 +32,7 @@ public class PlayerMovement : MonoBehaviour
     public AudioSource footstepAudioSource;
     public AudioSource sfxAudioSource;
     public AudioClip jumpSound;
-    public AudioClip dashSound;             // <-- 1. เพิ่มช่องใส่ไฟล์เสียง Dash ตรงนี้
+    public AudioClip dashSound;
 
     [Header("ส่วนประกอบ (References)")]
     public Rigidbody2D rb;
@@ -37,8 +42,28 @@ public class PlayerMovement : MonoBehaviour
     private bool isFacingRight = true;
     public bool isGrounded;
 
+    void Start()
+    {
+        // เซ็ตให้หลอด Dash เต็ม 100% ตั้งแต่เริ่มเกม
+        if (dashCooldownSlider != null)
+        {
+            dashCooldownSlider.maxValue = 1f;
+            dashCooldownSlider.value = 1f;
+        }
+    }
+
     void Update()
     {
+        // คำนวณหลอดคูลดาวน์ Dash ให้วิ่งรีโหลดตามเวลา
+        if (!canDash)
+        {
+            dashTimer -= Time.deltaTime;
+            if (dashCooldownSlider != null)
+            {
+                dashCooldownSlider.value = 1f - (dashTimer / dashCooldown);
+            }
+        }
+
         if (groundCheck != null)
         {
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
@@ -111,14 +136,19 @@ public class PlayerMovement : MonoBehaviour
     private IEnumerator DashCoroutine()
     {
         canDash = false;
+        dashTimer = dashCooldown;
+
+        if (dashCooldownSlider != null)
+        {
+            dashCooldownSlider.value = 0f; // รีเซ็ตหลอดลงเหลือ 0 ทันทีที่พุ่ง
+        }
+
         isDashing = true;
 
-        // --- 2. สั่งเล่นเสียง Dash ทันทีที่เริ่มพุ่งตัว ---
         if (sfxAudioSource != null && dashSound != null)
         {
             sfxAudioSource.PlayOneShot(dashSound);
         }
-        // ------------------------------------------
 
         if (trailRenderer != null) trailRenderer.emitting = true;
 
