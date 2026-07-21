@@ -1478,30 +1478,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
-      propertyPath: attackRadius
-      value: 0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
-      propertyPath: attackOffset.x
-      value: 0.37
-      objectReference: {fileID: 0}
-    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
-      propertyPath: attackOffset.y
-      value: -0.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
-      propertyPath: triggerDistance
-      value: 0.61
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329709114939758342, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
-      propertyPath: edgeCheckDistance
-      value: 0.41
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329709114939758342, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
-      propertyPath: wallCheckDistance
-      value: 0.14
-      objectReference: {fileID: 0}
     - target: {fileID: 160386421022843694, guid: b3e3e88426eab0342a3977f0f85219f4, type: 3}
       propertyPath: m_Mass
       value: 20
@@ -1609,6 +1585,30 @@ PrefabInstance:
     - target: {fileID: 7098729003482416742, guid: b3e3e88426eab0342a3977f0f85219f4, type: 3}
       propertyPath: attackTriggerOffset.y
       value: -0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
+      propertyPath: attackRadius
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
+      propertyPath: attackOffset.x
+      value: 0.37
+      objectReference: {fileID: 0}
+    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
+      propertyPath: attackOffset.y
+      value: -0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3468601336980947525, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
+      propertyPath: triggerDistance
+      value: 0.61
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329709114939758342, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
+      propertyPath: edgeCheckDistance
+      value: 0.41
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329709114939758342, guid: d9dd48caa2deb2f4ca6755f3146e5539, type: 3}
+      propertyPath: wallCheckDistance
+      value: 0.14
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -80432,6 +80432,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1765672176549901329, guid: 982915dc76f568846838327187d6ae6a, type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1765672176549901329, guid: 982915dc76f568846838327187d6ae6a, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1765672176549901329, guid: 982915dc76f568846838327187d6ae6a, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 1765672176549901329, guid: 982915dc76f568846838327187d6ae6a, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 2375127720363736028, guid: 982915dc76f568846838327187d6ae6a, type: 3}
+      propertyPath: m_RenderMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3625316893033978428, guid: 982915dc76f568846838327187d6ae6a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
